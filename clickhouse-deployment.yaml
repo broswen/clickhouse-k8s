@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clickhouse-deployment
+  namespace: clickhouse 
+  labels:
+    app: clickhouse-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clickhouse-server
+  template:
+    metadata:
+      labels:
+        app: clickhouse-server
+    spec:
+      containers:
+        - name: clickhouse 
+          image: bitnami/clickhouse
+          env:
+            # sets the password for 'default' user once on initial startup
+            - name: CLICKHOUSE_ADMIN_PASSWORD
+              value: password
+          ports:
+            - containerPort: 8123
+            - containerPort: 9000
+          volumeMounts:
+            #- name: clickhouse-config-volume
+            #  mountPath: /bitnami/clickhouse/conf/override.xml
+            - name: clickhouse-storage-volume
+              mountPath: /bitnami/clickhouse
+          resources:
+            requests:
+              cpu: 500m
+              memory: 2Gi
+            limits:
+              cpu: 1000m
+              memory: 4Gi
+      volumes:
+        #- name: clickhouse-config-volume
+        #  configMap:
+        #    defaultMode: 420
+        #    name: clickhouse 
+        - name: clickhouse-storage-volume
+          persistentVolumeClaim:
+            claimName: clickhouse-pvc
